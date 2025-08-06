@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sapna Travels</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+    }
+    .header {
+      display: flex;
+      flex-direction: row;
+      color: white;
+      padding: 20px;
+      height: 23px;
+      text-align: center;
+      font-size: 28px;
+      font-family: cooper;
+      font-weight: bold;
+      letter-spacing: 1px;
+      background-color: darkblue;
+      box-shadow: 0 5px 10px 0 rgb(32 33 36 / 100%);
+    }
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    .box {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      background-color: lightblue;
+      box-shadow: 0 1px 6px 0 rgb(32 33 36 / 28%);
+    }
+    .box hr {
+      border: none;
+      border-top: 1px dashed #ccc;
+      margin: 10px 0;
+    }
+    .box input, .box select {
+      width: 90%;
+      padding: 10px;
+      margin-top: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      font-size: 16px;
+      box-shadow: 0 1px 6px 0 rgb(32 33 36 / 28%);
+    }
+    .seat-row, .last-row {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 8px;
+    }
+    .seat-row button, .last-row button {
+      width: 55px;
+      height: 28px;
+      font-weight: bold;
+      font-size: 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      background: green;
+      color: white;
+      border: none;
+      transition: 0.3s ease;
+    }
+    .seat-row button:hover, .last-row button:hover {
+      background-color: #218838;
+    }
+    .issued { background: #dc3545 !important; }
+    .reserved { background: #ffc107 !important; color: #333 !important; }
+    .selected { background: #fd7e14 !important; }
+
+    .btns button, .btn-print {
+      padding: 12px;
+      margin-top: 8px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: bold;
+      width: 30%;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    .btn-issue { background-color: #007bff; color: white; }
+    .btn-reserved { background-color: #ffc107; color: #333; }
+    .btn-delete { background-color: #dc3545; color: white; }
+    .btn-print, .btn-print-all { background-color: #28a745; color: white; margin-top: 10px; }
+    .btn-issue:hover { background-color: #0056b3; }
+    .btn-reserved:hover { background-color: #e0a800; }
+    .btn-delete:hover { background-color: #c82333; }
+    .btn-print:hover { background-color: #17a2b8; }
+  </style>
+</head>
+<body>
+<div class="header">
+  <div class="header1">Sapna Travels</div>
+  <img src='C:\Users\HP\Desktop\New folder4\hjj.PNG' style='width:12%;height:65px;margin-top:-20px;margin-left: 27%; border-radius:0%;'>
+  <!-- Header Right Side Switch -->
+<div style="margin-left:auto;">
+  <label style="font-size:14px;">
+    <input type="checkbox" id="lockToggle" onchange="handleLockToggle()" />
+    Enable Action
+  </label>
+</div>
+
+</div>
+
+<div class="container">
+  <div class="box">
+    <b>Search</b><hr>
+	<button onclick="addCarNo()">➕</button>
+	<button onclick="removeCarNo()">❌</button>
+    <select id="carNo">
+      <option>LES - 315</option>
+      <option>E - 3249</option>
+      <option>E - 6055</option>
+      <option>E - 3645</option>
+      <option>CGA - 6177</option>
+    </select>
+    
+	<button onclick="addTime()">➕</button>
+  <button onclick="removeTime()">❌</button>
+    <select id="bookingTime" onchange="loadSeats()">
+      <option value="5:30">5:30</option>
+      <option value="7:30">7:30</option>
+      <option value="9:00">9:00</option>
+      <option value="11:00">11:00</option>
+    </select>
+	<input type="date" id="bookingDate" onchange="loadSeats()">
+  </div>
+
+  <div class="box">
+    <b>Seat Map</b><hr>
+    <div id="seatMap"></div>
+  </div>
+
+  <div class="box">
+    <b>Passenger Details</b><hr>
+    <input type="text" id="passengerName" placeholder="Name">
+    <input type="text" id="passengerPhone" placeholder="Phone (0312-4756660)" maxlength="12" oninput="formatPhone(this)">
+    <input type="text" id="passengerCNIC" placeholder="CNIC (12345-1234567-1)" maxlength="15">
+    <input type="number" id="passengerRent" placeholder="Rent (e.g. 1600)">
+    <select id="passengerDestination">
+      <option>Mardan</option>
+      <option>Rawalpindi</option>
+      <option>Rasta</option>
+    </select>
+    <div class="btns">
+      <button class="btn-issue" onclick="markSeat('issued')">Issue</button>
+      <button class="btn-reserved" onclick="markSeat('reserved')">Reserve</button>
+      <button class="btn-delete" onclick="markSeat('reset')">Delete</button>
+    </div>
+  </div>
+
+  <div class="box">
+    <b>Breakdown</b><hr>
+    <p>Seats Issued: <span id="issuedCount">0</span></p>
+    <p>Seats Reserved: <span id="reservedCount">0</span></p>
+    <p>Seats Left: <span id="leftCount">49</span></p>
+    <button class="btn-print" onclick="printTicket()">TICKET</button>
+    <button class="btn-print" onclick="printAllPassengers()">LIST</button>
+    <button class="btn-print" onclick="printPassengerSummary()">CHALAN</button>
+  </div>
+</div>
+
+<script>
+let seatMap = document.getElementById("seatMap");
+const seatsData = {};
+let selectedSeats = new Set();
+let currentKey = "";
+
+function getBookingKey() {
+  return document.getElementById("bookingDate").value + "_" + document.getElementById("bookingTime").value;
+}
+
+function saveToLocalStorage() {
+  localStorage.setItem("bookingData", JSON.stringify(seatsData));
+}
+
+function loadFromLocalStorage() {
+  const stored = localStorage.getItem("bookingData");
+  if (stored) Object.assign(seatsData, JSON.parse(stored));
+}
+
+function loadSeats() {
+  currentKey = getBookingKey();
+  if (!currentKey.includes("_")) return;
+  if (!seatsData[currentKey]) seatsData[currentKey] = {};
+  renderSeats(seatsData[currentKey]);
+}
+
+function renderSeats(status) {
+  seatMap.innerHTML = "";
+  selectedSeats.clear();
+  for (let i = 1; i <= 44; i += 4) {
+    const row = document.createElement("div");
+    row.className = "seat-row";
+    [0, 1, 2, 3].forEach(j => {
+      const seatNo = i + j;
+      const btn = document.createElement("button");
+      btn.textContent = seatNo;
+      btn.onclick = () => toggleSeat(seatNo);
+      if (status[seatNo]?.status === "issued") btn.classList.add("issued");
+      if (status[seatNo]?.status === "reserved") btn.classList.add("reserved");
+      row.appendChild(btn);
+    });
+    seatMap.appendChild(row);
+  }
+
+  const last = document.createElement("div");
+  last.className = "last-row";
+  for (let i = 45; i <= 49; i++) {
+    const btn = document.createElement("button");
+    btn.textContent = i;
+    btn.onclick = () => toggleSeat(i);
+    if (status[i]?.status === "issued") btn.classList.add("issued");
+    if (status[i]?.status === "reserved") btn.classList.add("reserved");
+    last.appendChild(btn);
+  }
+  seatMap.appendChild(last);
+  updateBreakdown();
+}
+
+function toggleSeat(seatNo) {
+  const btn = [...seatMap.querySelectorAll("button")].find(b => b.textContent == seatNo);
+  if (!btn) return;
+
+  const seat = seatsData[currentKey][seatNo];
+
+  if (seat?.status === "issued" || seat?.status === "reserved") {
+    // Show passenger data in form
+    const data = seat.data || {};
+    document.getElementById("passengerName").value = data.name || "";
+    document.getElementById("passengerPhone").value = data.phone || "";
+    document.getElementById("passengerCNIC").value = data.cnic || "";
+    document.getElementById("passengerRent").value = data.rent || "";
+    document.getElementById("passengerDestination").value = data.destination || "Mardan";
+
+    // Only one selected at a time for issued/reserved
+    document.querySelectorAll("#seatMap button").forEach(b => b.classList.remove("selected"));
+    btn.classList.add("selected");
+    selectedSeats.clear();
+    selectedSeats.add(seatNo);
+  } else {
+    // Clear form fields for empty seat
+    document.getElementById("passengerName").value = "";
+    document.getElementById("passengerPhone").value = "";
+    document.getElementById("passengerCNIC").value = "";
+    document.getElementById("passengerRent").value = "";
+    document.getElementById("passengerDestination").value = "Mardan";
+
+    // Toggle multi-selection
+    if (selectedSeats.has(seatNo)) {
+      selectedSeats.delete(seatNo);
+      btn.classList.remove("selected");
+    } else {
+      selectedSeats.add(seatNo);
+      btn.classList.add("selected");
+    }
+  }
+}
+
+
+
+function markSeat(type) {
+  if (selectedSeats.size === 0) return alert("Select seat(s) first");
+
+  const name = document.getElementById("passengerName").value.trim();
+  const phone = document.getElementById("passengerPhone").value.trim();
+  const cnic = document.getElementById("passengerCNIC").value.trim();
+  const rent = parseInt(document.getElementById("passengerRent").value.trim());
+  const destInput = document.getElementById("passengerDestination");
+
+  if (rent >= 1600) destInput.value = "Mardan";
+  else if (rent >= 1100) destInput.value = "Rawalpindi";
+  else if (rent >= 500) destInput.value = "Rasta";
+
+  const destination = destInput.value;
+
+  if ((type === "issued" || type === "reserved") && (!name || !phone || !cnic)) {
+    alert("Fill all details"); return;
+  }
+
+  selectedSeats.forEach(seatNo => {
+    const seat = seatsData[currentKey][seatNo] = seatsData[currentKey][seatNo] || {};
+    seat.status = (type === "reset") ? "available" : type;
+    seat.data = (type === "reset") ? null : { name, phone, cnic, destination, rent };
+  });
+
+  selectedSeats.clear();
+  saveToLocalStorage();
+  loadSeats();
+}
+
+function updateBreakdown() {
+  const seats = seatsData[currentKey];
+  let issued = 0, reserved = 0;
+  for (let i = 1; i <= 49; i++) {
+    if (seats[i]?.status === "issued") issued++;
+    if (seats[i]?.status === "reserved") reserved++;
+  }
+  document.getElementById("issuedCount").textContent = issued;
+  document.getElementById("reservedCount").textContent = reserved;
+  document.getElementById("leftCount").textContent = 49 - issued - reserved;
+}
+
+
+function printTicket() {
+  const name = document.getElementById("passengerName").value.trim();
+  const cnic = document.getElementById("passengerCNIC").value.trim();
+
+  if (!name || !cnic) {
+    alert("Please enter Name and CNIC of the passenger.");
+    return;
+  }
+
+  // Find all issued seats with same name and cnic
+  const allSeats = seatsData[currentKey];
+  const matchingSeats = [];
+
+  for (let seatNo in allSeats) {
+    const seat = allSeats[seatNo];
+    if (
+      seat.status === "issued" &&
+      seat.data &&
+      seat.data.name === name &&
+      seat.data.cnic === cnic
+    ) {
+      matchingSeats.push({
+        seatNo,
+        data: seat.data
+      });
+    }
+  }
+
+  if (matchingSeats.length === 0) {
+    alert("No issued seats found for this Name and CNIC.");
+    return;
+  }
+
+  const data = matchingSeats[0].data; // any matching seat data
+
+  const win = window.open("", "", "width=400,height=600");
+  win.document.write(`
+    <html><head><title>Ticket</title>
+    <style>
+      body { font-family: Arial; font-size: 14px; width: 80mm; margin: 0; padding: 10px; }
+      .ticket-box { border: 2px dashed #000; padding: 10px; }
+      .ticket-box h2 { text-align: center; margin: 0 0 12px 0; }
+      .ticket-info { margin-bottom: 10px; }
+      .footer-note { font-size: 12px; text-align: center; margin-top: 10px; border-top: 1px dashed #000; padding-top: 10px; }
+    </style>
+    </head><body>
+    <div class="ticket-box">
+      <h2>SAPNA TRAVELS</h2>
+      <div class="ticket-info"><b>Seat No(s):</b> ${matchingSeats.map(s => s.seatNo).join(", ")}</div>
+      <div class="ticket-info"><b>Name:</b> ${data.name}</div>
+      <div class="ticket-info"><b>Phone:</b> ${data.phone}</div>
+      <div class="ticket-info"><b>CNIC:</b> ${data.cnic}</div>
+      <div class="ticket-info"><b>Destination:</b> ${data.destination}</div>
+      <div class="ticket-info"><b>Car No:</b> ${document.getElementById("carNo").value}</div>
+      <div class="ticket-info"><b>Date:</b> ${document.getElementById("bookingDate").value}</div>
+      <div class="ticket-info"><b>Time:</b> ${document.getElementById("bookingTime").value}</div>
+      <div class="footer-note">
+        1. Once ticket is issued it is not refundable.<br>
+        2. 25% will be deducted in case of refund.<br>
+        3. Company is not responsible for lost items.<br>
+		-------------------------------------------------------<br>
+		-----------Booking no of Faisalabad--------------------<br>
+		-------------------------------------------------------<br>
+				jawad-ali    0312-4756660<br>
+				javid akhter 0332-7905054
+      </div>
+    </div>
+    </body></html>
+ `);
+  win.document.close();
+  win.print();
+}
+
+
+function printAllPassengers() {
+  const allSeats = seatsData[currentKey];
+  if (!allSeats) return alert("No data found.");
+  const passengers = [];
+
+  for (let seat in allSeats) {
+    if (allSeats[seat]?.status === "issued" && allSeats[seat].data) {
+      passengers.push({
+        seat: seat,
+        name: allSeats[seat].data.name,
+        cnic: allSeats[seat].data.cnic
+      });
+    }
+  }
+
+  if (passengers.length === 0) return alert("No passenger data found.");
+
+  const win = window.open("", "", "width=600,height=600");
+  win.document.write("<html><head><title>Passenger List</title></head><body>");
+  win.document.write("<h2>Passenger List</h2><table border='1'><tr><th>Seat No</th><th>Name</th><th>CNIC</th></tr>");
+  passengers.forEach(p => {
+    win.document.write(`<tr><td>${p.seat}</td><td>${p.name}</td><td>${p.cnic}</td></tr>`);
+  });
+  win.document.write("</table></body></html>");
+  win.document.close();
+  win.print();
+}
+function printPassengerSummary() {
+  const key = getBookingKey();
+  const allSeats = seatsData[key];
+  if (!allSeats) return alert("No booking data found.");
+
+  const summary = {};
+  let totalPassengers = 0;
+  let totalRent = 0;
+
+  for (let seatNo in allSeats) {
+    const seat = allSeats[seatNo];
+    if (seat?.status === "issued" && seat.data) {
+      const dest = seat.data.destination || "Unknown";
+      const rent = seat.data.rent || 0;
+
+      if (!summary[dest]) {
+        summary[dest] = { count: 0, rent: 0 };
+      }
+
+      summary[dest].count += 1;
+      summary[dest].rent += rent;
+
+      totalPassengers++;
+      totalRent += rent;
+    }
+  }
+
+  if (totalPassengers === 0) return alert("No issued passengers found.");
+
+  let content = `<h2>Passenger Summary</h2>`;
+  content += `<p><b>Car No:</b> ${document.getElementById("carNo").value}</p>`;
+  content += `<p><b>Date:</b> ${document.getElementById("bookingDate").value}</p>`;
+  content += `<p><b>Time:</b> ${document.getElementById("bookingTime").value}</p>`;
+  content += `<hr>`;
+
+  for (let dest in summary) {
+    content += `<p><b>Destination:</b> ${dest}<br>Passengers: ${summary[dest].count}<br>Total Rent: ${summary[dest].rent}</p>`;
+  }
+
+  content += `<hr><p><b>Total Passengers:</b> ${totalPassengers}<br><b>Total Rent:</b> ${totalRent}</p>`;
+
+  const win = window.open("", "", "width=600,height=600");
+  win.document.write(`<html><head><title>Passenger Summary</title></head><body>${content}</body></html>`);
+  win.document.close();
+  win.print();
+}
+function addCarNo() {
+  const newCar = prompt("Enter new Car No:");
+  if (newCar) {
+    const select = document.getElementById("carNo");
+    
+    // Check if already exists
+    for (let i = 0; i < select.options.length; i++) {
+      if (select.options[i].value === newCar) {
+        alert("This Car No. already exists.");
+        return;
+      }
+    }
+
+    const option = document.createElement("option");
+    option.text = newCar;
+    option.value = newCar;
+    select.add(option);
+    select.value = newCar;
+  }
+}
+
+function removeCarNo() {
+  const select = document.getElementById("carNo");
+  const selectedValue = select.value;
+
+  // Don't allow removing default options
+  const defaultOptions = ["LES - 315", "E - 3249", "E - 6055", "E - 3645", "CGA - 6177", "other"];
+  if (defaultOptions.includes(selectedValue)) {
+    alert("This Car No. cannot be removed.");
+    return;
+  }
+
+  // Remove selected option
+  const index = select.selectedIndex;
+  if (index !== -1) {
+    select.remove(index);
+    select.selectedIndex = 0; // Reset to first item
+  }
+}
+const defaultTimes = ["5:30", "7:30", "9:00", "11:00"];
+
+function loadTimeOptions() {
+  const savedTimes = JSON.parse(localStorage.getItem("customBookingTimes")) || [];
+  const allTimes = [...defaultTimes, ...savedTimes];
+
+  const select = document.getElementById("bookingTime");
+  select.innerHTML = ""; // Clear previous
+  allTimes.forEach(time => {
+    const option = document.createElement("option");
+    option.value = time;
+    option.textContent = time;
+    select.appendChild(option);
+  });
+
+  if (select.options.length > 0) select.selectedIndex = 0;
+}
+
+function addTime() {
+  const newTime = prompt("Enter new Time (e.g. 12:00):");
+  if (!newTime) return;
+
+  const select = document.getElementById("bookingTime");
+  const exists = [...select.options].some(opt => opt.value === newTime);
+  if (exists) return alert("Time already exists.");
+
+  // Save in localStorage
+  const savedTimes = JSON.parse(localStorage.getItem("customBookingTimes")) || [];
+  savedTimes.push(newTime);
+  localStorage.setItem("customBookingTimes", JSON.stringify(savedTimes));
+
+  loadTimeOptions();
+  select.value = newTime;
+  loadSeats();
+}
+
+function removeTime() {
+  const select = document.getElementById("bookingTime");
+  const selectedTime = select.value;
+
+  if (defaultTimes.includes(selectedTime)) {
+    alert("Default time cannot be removed.");
+    return;
+  }
+
+  let savedTimes = JSON.parse(localStorage.getItem("customBookingTimes")) || [];
+  savedTimes = savedTimes.filter(t => t !== selectedTime);
+  localStorage.setItem("customBookingTimes", JSON.stringify(savedTimes));
+
+  loadTimeOptions();
+  loadSeats();
+}
+
+<!-- 🔒 Lock/Unlock Functionality -->
+
+  let isLocked = true; // default: locked
+  const password = "4139243"; // change this if needed
+
+  function handleLockToggle() {
+    const toggle = document.getElementById("lockToggle");
+
+    if (toggle.checked) {
+      const entered = prompt("Enter password to unlock:");
+      if (entered === password) {
+        isLocked = false;
+        toggle.checked = true;
+        alert("Unlocked successfully!");
+        setActionButtons(true);
+      } else {
+        alert("Incorrect password.");
+        toggle.checked = false;
+      }
+    } else {
+      isLocked = true;
+      alert("Locked again.");
+      setActionButtons(false);
+    }
+  }
+
+  function setActionButtons(enabled) {
+    const buttons = document.querySelectorAll(".btn-issue, .btn-reserved, .btn-delete, .btn-print");
+    buttons.forEach(btn => btn.disabled = !enabled);
+  }
+
+  function checkIfLocked() {
+    if (isLocked) {
+      alert("Feature is locked. Enable action first.");
+      return true;
+    }
+    return false;
+  }
+
+  // Wrap existing functions to lock them
+  const originalMarkSeat = markSeat;
+  markSeat = function(type) {
+    if (checkIfLocked()) return;
+    originalMarkSeat(type);
+  }
+
+  const originalToggleSeat = toggleSeat;
+  toggleSeat = function(seatNo) {
+    if (checkIfLocked()) return;
+    originalToggleSeat(seatNo);
+  }
+
+  const originalPrintTicket = printTicket;
+  printTicket = function() {
+    if (checkIfLocked()) return;
+    originalPrintTicket();
+  }
+
+  const originalPrintAllPassengers = printAllPassengers;
+  printAllPassengers = function() {
+    if (checkIfLocked()) return;
+    originalPrintAllPassengers();
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    setActionButtons(false);
+  });
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadFromLocalStorage();
+  document.getElementById("bookingDate").valueAsDate = new Date();
+  loadSeats();
+  document.getElementById("passengerCNIC").addEventListener("input", e => {
+    let val = e.target.value.replace(/[^0-9]/g, "").slice(0,13);
+    let f = val;
+    if (val.length > 5) f = val.slice(0,5)+"-"+val.slice(5);
+    if (val.length > 12) f = f.slice(0,13)+"-"+val.slice(12);
+    e.target.value = f;
+  });
+});
+</script>
+</body>
+</html>
